@@ -8,10 +8,8 @@ from PIL import ImageDraw
 
 # CONFIGURATION
 NUM_ROUNDS = 10
-
 HUMAN_DIR = "dataset/human-made"
 AI_DIR = "dataset/ai-generated"
-
 SUPPORTED_EXTENSIONS = (".jpg", ".jpeg", ".png")
 
 # PAGE CONFIGURATION
@@ -22,7 +20,6 @@ st.set_page_config(
 
 # DATASET GENERATION
 def create_placeholder_image(filepath, color, text):
-
     image = Image.new(
         "RGB",
         (512, 512),
@@ -39,9 +36,7 @@ def create_placeholder_image(filepath, color, text):
 
     image.save(filepath)
 
-
 def generate_placeholder_dataset():
-
     os.makedirs(HUMAN_DIR, exist_ok=True)
     os.makedirs(AI_DIR, exist_ok=True)
 
@@ -49,16 +44,13 @@ def generate_placeholder_dataset():
         f for f in os.listdir(HUMAN_DIR)
         if f.lower().endswith(SUPPORTED_EXTENSIONS)
     ]
-
     ai_files = [
         f for f in os.listdir(AI_DIR)
         if f.lower().endswith(SUPPORTED_EXTENSIONS)
     ]
 
     if len(human_files) == 0:
-
         for i in range(5):
-
             create_placeholder_image(
                 os.path.join(
                     HUMAN_DIR,
@@ -73,9 +65,7 @@ def generate_placeholder_dataset():
             )
 
     if len(ai_files) == 0:
-
         for i in range(5):
-
             create_placeholder_image(
                 os.path.join(
                     AI_DIR,
@@ -88,21 +78,16 @@ def generate_placeholder_dataset():
                 ),
                 f"AI {i + 1}"
             )
-
-
 generate_placeholder_dataset()
 
 # LOAD DATASET
 def load_dataset():
-
     images = []
 
     for filename in os.listdir(HUMAN_DIR):
-
         if filename.lower().endswith(
             SUPPORTED_EXTENSIONS
         ):
-
             images.append({
                 "path": os.path.join(
                     HUMAN_DIR,
@@ -112,11 +97,7 @@ def load_dataset():
             })
 
     for filename in os.listdir(AI_DIR):
-
-        if filename.lower().endswith(
-            SUPPORTED_EXTENSIONS
-        ):
-
+        if filename.lower().endswith(SUPPORTED_EXTENSIONS):
             images.append({
                 "path": os.path.join(
                     AI_DIR,
@@ -124,21 +105,18 @@ def load_dataset():
                 ),
                 "true_type": "AI-Generated"
             })
-
     return images
 
+# SET CHART CONDITIONS
 CONDITIONS = [
-
     # HXH
     ("HXH", "correct"),
     ("HXH", "wrong"),
     ("HXH", "one_wrong"),
-
     # AXA
     ("AXA", "correct"),
     ("AXA", "wrong"),
     ("AXA", "one_wrong"),
-
     # AXH
     ("AXH", "correct"),
     ("AXH", "wrong"),
@@ -146,13 +124,12 @@ CONDITIONS = [
     ("AXH", "one_wrong")
 ]
 
+# BUILD IMAGE DATASETS
 ALL_IMAGES = load_dataset()
-
 human_images = [
     img for img in ALL_IMAGES
     if img["true_type"] == "Human-Made"
 ]
-
 ai_images = [
     img for img in ALL_IMAGES
     if img["true_type"] == "AI-Generated"
@@ -162,7 +139,6 @@ required_human = 10
 required_ai = 10
 
 if len(human_images) < required_human:
-
     st.error(
         f"Need at least {required_human} Human-Made images."
     )
@@ -170,7 +146,6 @@ if len(human_images) < required_human:
     st.stop()
 
 if len(ai_images) < required_ai:
-
     st.error(
         f"Need at least {required_ai} AI-Generated images."
     )
@@ -178,12 +153,10 @@ if len(ai_images) < required_ai:
     st.stop()
 
 def opposite_label(label):
-
     if label == "Human-Made":
         return "AI-Generated"
 
     return "Human-Made"
-
 
 def assign_labels(
     truth_a,
@@ -192,29 +165,23 @@ def assign_labels(
 ):
 
     if label_condition == "correct":
-
         return truth_a, truth_b
 
     elif label_condition == "wrong":
-
         return (
             opposite_label(truth_a),
             opposite_label(truth_b)
         )
 
     elif label_condition == "one_wrong":
-
         wrong_first = random.choice(
             [True, False]
         )
-
         if wrong_first:
-
             return (
                 opposite_label(truth_a),
                 truth_b
             )
-
         return (
             truth_a,
             opposite_label(truth_b)
@@ -222,71 +189,51 @@ def assign_labels(
 
 # ROUND GENERATION
 def generate_round():
-
     pair_type, label_condition = (
         st.session_state.conditions.pop()
     )
 
-    # --------------------
     # HXH
-    # --------------------
-
     if pair_type == "HXH":
-
         image_a = (
             st.session_state.human_pool.pop()
         )
-
         image_b = (
             st.session_state.human_pool.pop()
         )
 
-    # --------------------
     # AXA
-    # --------------------
-
     elif pair_type == "AXA":
-
         image_a = (
             st.session_state.ai_pool.pop()
         )
-
         image_b = (
             st.session_state.ai_pool.pop()
         )
 
-    # --------------------
     # AXH
-    # --------------------
-
     else:
-
         image_a = (
             st.session_state.ai_pool.pop()
         )
-
         image_b = (
             st.session_state.human_pool.pop()
         )
 
-        # randomize side placement
-
+        # RANDOMIZE IMAGE PLACEMENT
         if random.choice([True, False]):
-
             image_a, image_b = (
                 image_b,
                 image_a
             )
 
     label_a, label_b = assign_labels(
-
         image_a["true_type"],
         image_b["true_type"],
         label_condition
     )
 
     return {
-
         "condition":
             pair_type,
 
@@ -317,37 +264,30 @@ if "results" not in st.session_state:
     st.session_state.results = []
 
 if "human_pool" not in st.session_state:
-
     st.session_state.human_pool = (
         human_images.copy()
     )
-
     random.shuffle(
         st.session_state.human_pool
     )
 
 if "ai_pool" not in st.session_state:
-
     st.session_state.ai_pool = (
         ai_images.copy()
     )
-
     random.shuffle(
         st.session_state.ai_pool
     )
 
 if "conditions" not in st.session_state:
-
     st.session_state.conditions = (
         CONDITIONS.copy()
     )
-
     random.shuffle(
         st.session_state.conditions
     )
 
 if "current_round" not in st.session_state:
-
     st.session_state.current_round = (
         generate_round()
     )
@@ -372,11 +312,9 @@ if st.session_state.page == "intro":
         "Start Study",
         use_container_width=True
     ):
-
         st.session_state.page = "experiment"
-
         st.rerun()
-
+    
     st.stop()
 
 # START EXPERIMENT
@@ -389,9 +327,8 @@ if (
 
 # EXPERIMENT PAGE
 if st.session_state.page == "experiment":
-
     round_data = st.session_state.current_round
-
+    
     st.title(
         "Human vs AI Artwork Preference Study"
     )
@@ -409,7 +346,6 @@ if st.session_state.page == "experiment":
     col1, col2 = st.columns(2)
 
     with col1:
-
         st.image(
             round_data["image_a"]["path"],
             use_container_width=True
@@ -425,7 +361,6 @@ if st.session_state.page == "experiment":
         )
 
     with col2:
-
         st.image(
             round_data["image_b"]["path"],
             use_container_width=True
@@ -528,13 +463,11 @@ if st.session_state.page == "experiment":
 
             "preferred_image":
                 preference
-
         })
 
         st.session_state.round += 1
 
         if st.session_state.round <= NUM_ROUNDS:
-
             st.session_state.current_round = (
                 generate_round()
             )
@@ -543,7 +476,6 @@ if st.session_state.page == "experiment":
 
 # RESULTS PAGE
 if st.session_state.page == "results":
-
     st.title("Thank You For Participating!")
 
     st.markdown("---")
@@ -553,11 +485,9 @@ if st.session_state.page == "results":
     )
 
     total_correct = (
-
         df["guess_A_correct"].sum()
         +
         df["guess_B_correct"].sum()
-
     )
 
     total_predictions = len(df) * 2
