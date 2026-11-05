@@ -177,16 +177,6 @@ if len(ai_images) < required_ai:
 
     st.stop()
 
-if len(ALL_IMAGES) < required_images:
-
-    st.error(
-        f"This study requires at least "
-        f"{required_images} unique images.\n\n"
-        f"Found only {len(ALL_IMAGES)} images."
-    )
-
-    st.stop()
-
 def opposite_label(label):
 
     if label == "Human-Made":
