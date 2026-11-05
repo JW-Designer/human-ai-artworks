@@ -533,9 +533,11 @@ if st.session_state.page == "experiment":
 
         st.session_state.round += 1
 
-        st.session_state.current_round = (
-            generate_round()
-        )
+        if st.session_state.round <= NUM_ROUNDS:
+
+            st.session_state.current_round = (
+                generate_round()
+            )
 
         st.rerun()
 
